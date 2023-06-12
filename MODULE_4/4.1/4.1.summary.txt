@@ -1,0 +1,77 @@
+AZ-204 - Module 4
+
+
+1/10/1 ——————————————————————————————————————————
+
+Azure Cosmos DB is a globally distributed database system that allows you to read and write data from the local replicas of your database and it transparently replicates the data to all the regions associated with your Cosmos account.
+
+2/10/1 ——————————————————————————————————————————
+
+Azure Cosmos DB is a fully managed NoSQL database designed to provide low latency, elastic scalability of throughput, well-defined semantics for data consistency, and high availability.
+
+3/10/1 ——————————————————————————————————————————
+
+The Azure Cosmos DB account is the fundamental unit of global distribution and high availability. Your Azure Cosmos DB account contains a unique DNS name and you can manage an account by using the Azure portal or the Azure CLI, or by using different language-specific SDKs. For globally distributing your data and throughput across multiple Azure regions, you can add and remove Azure regions to your account at any time.
+
+Database Account -> Databases -> Container(s)
+
+
+When you create a container, you configure throughput in one of the following modes:
+- Dedicated provisioned throughput mode: The throughput provisioned on a container is exclusively reserved for that container and it's backed by the SLAs.
+- Shared provisioned throughput mode: These containers share the provisioned throughput with the other containers in the same database (excluding containers that have been configured with dedicated provisioned throughput). In other words, the provisioned throughput on the database is shared among all the “shared throughput” containers.
+
+
+
+4/10/1 ——————————————————————————————————————————
+
+Azure Cosmos DB offers five well-defined levels. From strongest to weakest, the levels are:
+* 		Strong
+* 		Bounded staleness: In bounded staleness consistency, the reads are guaranteed to honor the consistent-prefix guarantee. The reads might lag behind writes by at most "K" versions (that is, "updates") of an item or by "T" time interval, whichever is reached first.
+* 		Session
+* 		Consistent prefix
+* 		Eventual
+
+
+Each level provides availability and performance tradeoffs. The following image shows the different consistency levels as a spectrum.
+
+
+5/10/1 ——————————————————————————————————————————
+
+Configure the default consistency level
+You can configure the default consistency level on your Azure Cosmos DB account at any time. The default consistency level configured on your account applies to all Azure Cosmos DB databases and containers under that account. All reads and queries issued against a container or a database use the specified consistency level by default.
+
+Read consistency applies to a single read operation scoped within a logical partition. The read operation can be issued by a remote client or a stored procedure.
+
+! Azure Cosmos DB guarantees that 100 percent of read requests meet the consistency guarantee for the consistency level chosen. !
+
+6/10/1 ——————————————————————————————————————————
+
+Cosmos DB provides different APIs. 
+
+7/10/1 ——————————————————————————————————————————
+
+! With Azure Cosmos DB, you pay for the throughput you provision and the storage you consume on an hourly basis. Throughput must be provisioned to ensure that sufficient system resources are available for your Azure Cosmos database always. !
+
+The cost of all database operations is normalized by Azure Cosmos DB and is expressed by request units (or RUs, for short). A request unit represents the system resources such as CPU, IOPS, and memory that are required to perform the database operations supported by Azure Cosmos DB.
+
+The cost to do a point read, which is fetching a single item by its ID and partition key value, for a 1-KB item is 1RU. All other database operations are similarly assigned a cost using RUs. No matter which API you use to interact with your Azure Cosmos container, costs are measured by RUs. Whether the database operation is a write, point read, or query, costs are measured in RUs.
+
+The type of Azure Cosmos DB account you're using determines the way consumed RUs get charged. There are three modes in which you can create an account:
+
+- Provisioned throughput mode: In this mode, you provision the number of RUs for your application on a per-second basis in increments of 100 RUs per second. To scale the provisioned throughput for your application, you can increase or decrease the number of RUs at any time in increments or decrements of 100 RUs. You can make your changes either programmatically or by using the Azure portal. You can provision throughput at container and database granularity level.
+- Serverless mode: In this mode, you don't have to provision any throughput when creating resources in your Azure Cosmos DB account. At the end of your billing period, you get billed for the number of request units that have been consumed by your database operations.
+- Autoscale mode: In this mode, you can automatically and instantly scale the throughput (RU/s) of your database or container based on its usage. This scaling operation doesn't affect the availability, latency, throughput, or performance of the workload. This mode is well suited for mission-critical workloads that have variable or unpredictable traffic patterns, and require SLAs on high performance and scale.
+
+8/10/1 ——————————————————————————————————————————
+
+EXERCISE
+
+
+9/10/1 ——————————————————————————————————————————
+
+ TEST
+
+10/10/1 ——————————————————————————————————————————
+
+SUMMARY
+
