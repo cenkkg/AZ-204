@@ -1,0 +1,123 @@
+1/8/2 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+
+2/8/2 ---------------------------------------------------------------------------------------------------------------------
+! Azure Container Instances (ACI) !
+Azure Container Instances (ACI) is a great solution for any scenario that can operate in isolated containers, including simple applications, task automation, and build jobs. Here are some of the benefits:
+
+Benefits: 
+    - Fast startup: ACI can start containers in Azure in seconds, without the need to provision and manage VMs
+    - Container access: ACI enables exposing your container groups directly to the internet with an IP address and a fully qualified domain name (FQDN)
+    - Hypervisor-level security: Isolate your application as completely as it would be in a VM
+    - Customer data: The ACI service stores the minimum customer data required to ensure your container groups are running as expected
+    - Custom sizes: ACI provides optimum utilization by allowing exact specifications of CPU cores and memory
+    - Persistent storage: Mount Azure Files shares directly to a container to retrieve and persist state
+    - Linux and Windows: Schedule both Windows and Linux containers using the same API.
+
+Container groups:
+    The top-level resource in Azure Container Instances is the container group. 
+    A container group is a collection of containers that get scheduled on the same host machine. 
+    The containers in a container group share a lifecycle, resources, local network, and storage volumes. 
+    It's similar in concept to a pod in Kubernetes.
+
+! Multi-container groups currently support only Linux containers. For Windows containers, Azure Container Instances only supports deployment of a single instance. !
+
+! There are two common ways to deploy a multi-container group: use a Resource Manager template or a YAML file. !
+
+! You can specify external volumes to mount within a container group. You can map those volumes into specific paths within the individual containers in a group. !
+
+3/8/2 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+If you do not have resource group, firstly, you need to create one:
+az group create --name az204-aci-rg --location <myLocation>
+
+Firstly, create DNS name to expose container to outside via internet.
+DNS_NAME_LABEL=aci-example-$RANDOM // Run this in bash
+
+az container create --resource-group az204-aci-rg 
+    --name mycontainer 
+    --image mcr.microsoft.com/azuredocs/aci-helloworld 
+    --ports 80 
+    --dns-name-label $DNS_NAME_LABEL --location <myLocation> 
+
+You can list running containers with that command:
+az container show --resource-group az204-aci-rg 
+    --name mycontainer 
+    --query "{FQDN:ipAddress.fqdn,ProvisioningState:provisioningState}" 
+    --out table 
+
+
+4/8/2 ---------------------------------------------------------------------------------------------------------------------
+Run containerized tasks with restart policies.
+
+!!! With a configurable restart policy, you can specify that your containers are stopped when their processes have completed. 
+Because container instances are billed by the second, you're charged only for the compute resources used while the container executing your task is running. !!!
+
+Container restart policies:
+    - Always
+    - Never
+    - OnFailure: Difference between Always and OnFailure is that, in always, it is restarting always whether return status code is 0 or not.
+                 But, in OnFailure, it will be restarted if return status code is different than 0.
+
+You can create container group with below command which includes restart policy:
+az container create \
+    --resource-group myResourceGroup \
+    --name mycontainer \
+    --image mycontainerimage \
+    --restart-policy OnFailure
+
+5/8/2 ---------------------------------------------------------------------------------------------------------------------
+Set environment variables in container instances.
+
+az container create \
+    --resource-group myResourceGroup \
+    --name mycontainer2 \
+    --image mcr.microsoft.com/azuredocs/aci-wordcount:latest 
+    --restart-policy OnFailure \
+    --environment-variables 'NumWords'='5' 'MinLength'='8'\
+
+Secure values:
+    Objects with secure values are intended to hold sensitive information like passwords or keys for your application. 
+    Using secure values for environment variables is both safer and more flexible than including it in your container's image.
+
+    Environment variables with secure values aren't visible in your container's properties.
+
+    You can create yaml file for container creation: -------------------------------------------------
+    apiVersion: 2018-10-01
+    location: eastus
+    name: securetest
+    properties:
+    containers:
+    - name: mycontainer
+        properties:
+        environmentVariables:
+            - name: 'NOTSECRET'
+            value: 'my-exposed-value'
+            - name: 'SECRET'
+            secureValue: 'my-secret-value'
+        image: nginx
+        ports: []
+        resources:
+            requests:
+            cpu: 1.0
+            memoryInGB: 1.5
+    osType: Linux
+    restartPolicy: Always
+    tags: null
+    type: Microsoft.ContainerInstance/containerGroups
+
+    And then, apply yaml file: -------------------------------------------------
+    az container create --resource-group myResourceGroup \
+    --file secure-env.yaml \
+
+Mount an Azure file share in Azure Container Instances:
+    By default, Azure Container Instances are stateless.
+    However, we can use Azure file share to persist data.
+
+    Limitations
+        You can only mount Azure Files shares to Linux containers.
+        Azure file share volume mount requires the Linux container run as root.
+        Azure File share volume mounts are limited to CIFS support.
+
+    
