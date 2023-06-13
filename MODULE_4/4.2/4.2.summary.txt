@@ -61,4 +61,100 @@ All Azure Cosmos DB operations must complete within a limited amount of time.
 Stored procedures have a limited amount of time to run on the server. 
 All collection functions return a Boolean value that represents whether that operation completes or not.
 
-Transactions within stored procedures:
+5/8/2 ——————————————————————————————————————————
+
+Create triggers and user-defined functions:
+
+Azure Cosmos DB supports pretriggers and post-triggers. Pretriggers are executed before modifying a database item and post-triggers are executed after modifying a database item.
+! After you define a trigger, you should register it by using the Azure Cosmos DB SDKs. !
+
+1) Pretriggers:
+function validateToDoItemTimestamp() {
+    var context = getContext();
+    var request = context.getRequest();
+
+    // item to be created in the current operation
+    var itemToCreate = request.getBody();
+
+    // validate properties
+    if (!("timestamp" in itemToCreate)) {
+        var ts = new Date();
+        itemToCreate["timestamp"] = ts.getTime();
+    }
+
+    // update the item that will be created
+    request.setBody(itemToCreate);
+}
+
+2) Post-triggers:
+function updateMetadata() {
+var context = getContext();
+var container = context.getCollection();
+var response = context.getResponse();
+
+// item that was created
+var createdItem = response.getBody();
+
+// query for metadata document
+var filterQuery = 'SELECT * FROM root r WHERE r.id = "_metadata"';
+var accept = container.queryDocuments(container.getSelfLink(), filterQuery,
+    updateMetadataCallback);
+if(!accept) throw "Unable to update metadata, abort";
+
+function updateMetadataCallback(err, items, responseOptions) {
+    if(err) throw new Error("Error" + err.message);
+        if(items.length != 1) throw 'Unable to find metadata document';
+
+        var metadataItem = items[0];
+
+        // update metadata
+        metadataItem.createdItems += 1;
+        metadataItem.createdNames += " " + createdItem.id;
+        var accept = container.replaceDocument(metadataItem._self,
+            metadataItem, function(err, itemReplaced) {
+                    if(err) throw "Unable to update metadata, abort";
+            });
+        if(!accept) throw "Unable to update metadata, abort";
+        return;
+    }
+}
+
+
+6/8/2 ——————————————————————————————————————————
+Change feed in Azure Cosmos DB is a persistent record of changes to a container in the order they occur.
+
+! Today, you see all inserts and updates in the change feed. 
+You can't filter the change feed for a specific type of operation. 
+Currently change feed doesn't log delete operations. 
+As a workaround, you can add a soft marker on the items that are being deleted. 
+For example, you can add an attribute in the item called "deleted," set its value to "true," and then set a time-to-live (TTL) value on the item. 
+Setting the TTL ensures that the item is automatically deleted. !
+
+You can work with the Azure Cosmos DB change feed using either a push model or a pull model.
+- push
+- pull
+
+! It is recommended to use the push model because you won't need to worry about polling the change feed for future changes, storing state for the last processed change, and other benefits. !
+
+Most scenarios that use the Azure Cosmos DB change feed use one of the push model options. However, there are some scenarios where you might want the additional low level control of the pull model. These include:
+- Reading changes from a particular partition key
+- Controlling the pace at which your client receives changes for processing
+- Doing a one-time read of the existing data in the change feed (for example, to do a data migration)
+
+Reading change feed with a push model:
+There are two ways you can read from the change feed with a push model: Azure Functions Azure Cosmos DB triggers, and the change feed processor library:
+
+
+Change feed processor: 
+The change feed processor is part of the Azure Cosmos DB .NET V3 and Java V4 SDKs. It simplifies the process of reading the change feed and distributes the event processing across multiple consumers effectively.
+There are four main components of implementing the change feed processor:
+- The monitored container: The monitored container has the data from which the change feed is generated. Any inserts and updates to the monitored container are reflected in the change feed of the container.
+- The lease container: The lease container acts as a state storage and coordinates processing the change feed across multiple workers. The lease container can be stored in the same account as the monitored container or in a separate account.
+- The compute instance: A compute instance hosts the change feed processor to listen for changes. Depending on the platform, it could be represented by a VM, a kubernetes pod, an Azure App Service instance, an actual physical machine. It has a unique identifier referenced as the instance name throughout this article.
+- The delegate: The delegate is the code that defines what you, the developer, want to do with each batch of changes that the change feed processor reads.
+
+7/8/2 ——————————————————————————————————————————
+TEST 
+
+8/8/2 ——————————————————————————————————————————
+SUMMARY
