@@ -131,3 +131,6 @@ TEST
 
 9/9/3 ---------------------------------------------------------------------------------------------------------------------
 SUMMARY
+
+NOTES:
+Great Demo for Azure Container App (with node-express): https://www.youtube.com/watch?v=fmGHEJL81rU
