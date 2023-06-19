@@ -1,0 +1,133 @@
+1/9/3 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+
+2/9/3 ---------------------------------------------------------------------------------------------------------------------
+Explore Azure Container Apps
+
+!!! Azure Container Apps enables you to run microservices and containerized applications on a serverless platform that runs on top of Azure Kubernetes Service. 
+Common uses of Azure Container Apps include:
+    - Deploying API endpoints
+    - Hosting background processing applications
+    - Handling event-driven processing
+    - Running microservices
+
+! Microservice architectures allow you to independently develop, upgrade, version, and scale core areas of functionality in an overall system. !
+
+!!!
+Moreover, you can use Dapr also:
+    Dapr integration.......
+    When you implement a system composed of microservices, function calls are spread across the network. 
+    To support the distributed nature of microservices, you need to account for failures, retries, and timeouts. 
+    While Container Apps features the building blocks for running microservices, use of Dapr provides an even richer microservices programming model. 
+    Dapr includes features like observability, pub/sub, and service-to-service invocation with mutual TLS, retries, and more.
+!!!
+
+3/9/3 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+Firstly, you need to add Azure Container App extension to CLI:
+az extension add --name containerapp --upgrade
+
+And, register Microsoft.App namespace:
+az provider register --namespace Microsoft.App
+
+Register the Microsoft.OperationalInsights provider for the Azure Monitor Log Analytics workspace if you haven't used it before:
+az provider register --namespace Microsoft.OperationalInsights
+
+Set environment variables used later in this exercise. Replace <location> with a region near you:
+myRG=az204-appcont-rg
+myLocation=<location>
+myAppContEnv=az204-env-$RANDOM
+
+Create the resource group for your container app:
+az group create \
+    --name $myRG \
+    --location $myLocation
+
+An environment in Azure Container Apps creates a secure boundary around a group of container apps.
+Container Apps deployed to the same environment are deployed in the same virtual network and write logs to the same Log Analytics workspace.
+az containerapp env create \
+    --name $myAppContEnv \
+    --resource-group $myRG \
+    --location $myLocation
+
+After the container app environment finishes deployment, you can deploy a container image to Azure Container Apps.
+az containerapp create \
+    --name my-container-app \
+    --resource-group $myRG \
+    --environment $myAppContEnv \
+    --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest \
+    --target-port 80 \
+    --ingress 'external' \
+    --query properties.configuration.ingress.fqdn
+
+
+4/9/3 ---------------------------------------------------------------------------------------------------------------------
+! Azure Container Apps manages the details of Kubernetes and container orchestration for you. 
+Containers in Azure Container Apps can use any runtime, programming language, or development stack of your choice. !
+
+! You can define multiple containers in a single container app to implement the sidecar pattern.
+ The containers in a container app share hard disk and network resources and experience the same application lifecycle. !
+
+5/9/3 ---------------------------------------------------------------------------------------------------------------------
+Implement authentication and authorization in Azure Container Apps...
+
+! The authentication and authorization middleware component is a feature of the platform that runs as a sidecar container on each replica in your application. 
+When enabled, every incoming HTTP request passes through the security layer before being handled by your application. !
+
+6/9/3 ---------------------------------------------------------------------------------------------------------------------
+Manage revisions and secrets in Azure Container Apps...
+
+! Azure Container Apps implements container app versioning by creating revisions. !
+A revision is an immutable snapshot of a container app version. 
+You can use revisions to release a new version of your app, or quickly revert to an earlier version of your app.
+
+! With the az containerapp update command you can modify environment variables, compute resources, scale parameters, and deploy a different image. !
+! A new revision is created when a container app is updated with revision-scope changes. !
+Updating your container app:
+az containerapp update \
+  --name <APPLICATION_NAME> \
+  --resource-group <RESOURCE_GROUP_NAME> \
+  --image <IMAGE_NAME>
+
+You can list all revisions associated with your container app with the az containerapp revision list command:
+az containerapp revision list \
+  --name <APPLICATION_NAME> \
+  --resource-group <RESOURCE_GROUP_NAME> \
+  -o table
+
+Manage secrets in Azure Container Apps:
+! Azure Container Apps allows your application to securely store sensitive configuration values. 
+Once secrets are defined at the application level, secured values are available to container apps. 
+Specifically, you can reference secured values inside scale rules. !
+
+    - Secrets are scoped to an application, outside of any specific revision of an application.
+    - Adding, removing, or changing secrets doesn't generate new revisions.
+
+An updated or deleted secret doesn't automatically affect existing revisions in your app. 
+When a secret is updated or deleted, you can respond to changes in one of two ways:
+    - Deploy a new revision.
+    - Restart an existing revision.
+
+EXAMPLE:
+az containerapp create \
+  --resource-group "my-resource-group" \
+  --name queuereader \
+  --environment "my-environment-name" \
+  --image demos/queuereader:v1 \
+  --secrets "queue-connection-string=$CONNECTION_STRING" <------ !!!
+
+After declaring secrets at the application level, you can reference them in environment variables when you create a new revision in your container app. 
+When an environment variable references a secret, its value is populated with the value defined in the secret. 
+To reference a secret in an environment variable in the Azure CLI, set its value to secretref:, followed by the name of the secret.
+
+7/9/3 ---------------------------------------------------------------------------------------------------------------------
+Explore Dapr integration with Azure Container Apps...
+
+The Distributed Application Runtime (Dapr) is a set of incrementally adoptable features that simplify the authoring of distributed, microservice-based applications.
+
+8/9/3 ---------------------------------------------------------------------------------------------------------------------
+TEST 
+
+9/9/3 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
