@@ -1,0 +1,38 @@
+1/6/2 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+
+2/6/2 ---------------------------------------------------------------------------------------------------------------------
+"The Microsoft Authentication Library (MSAL)" enables developers to acquire tokens from the Microsoft identity platform 
+    in order to authenticate users and access secured web APIs.
+
+The Microsoft Authentication Library (MSAL) can be used to provide secure access to
+    Microsoft Graph, 
+    other Microsoft APIs,
+    third-party web APIs, 
+    or your own web API.
+
+MSAL gives you many ways to get tokens, with a consistent API for many platforms. Using MSAL provides the following benefits:
+    - No need to directly use the OAuth libraries or code against the protocol in your application.
+    - Acquires tokens on behalf of a user or on behalf of an application (when applicable to the platform).
+    - Maintains a token cache and refreshes tokens for you when they're close to expire. You don't need to handle token expiration on your own.
+
+Using MSAL, a token can be acquired from many application types: web applications, 
+    web APIs, single-page apps (JavaScript), mobile and native applications, and daemons and server-side applications:
+        - MSAL for Android
+        - MSAL for Android
+        - MSAL.js ...
+
+Security tokens can be acquired by multiple types of applications.
+    - Public client applications: can not hold configuration-time secrets.
+    - Confidential client applications: can hold configuration-time secrets.
+
+
+3/6/2 ---------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
