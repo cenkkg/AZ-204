@@ -29,6 +29,17 @@ Security tokens can be acquired by multiple types of applications.
 
 3/6/2 ---------------------------------------------------------------------------------------------------------------------
 
+- PublicClientApplicationBuilder
+- ConfidentialClientApplicationBuilder
+
++ The client ID (a string representing a GUID)
++ The identity provider URL (named the instance) and the sign-in audience for your application.
+     These two parameters are collectively known as the authority.
++ The tenant ID if you're writing a line of business application solely for your organization (also named single-tenant application).
++ The application secret (client secret string) or certificate (of type X509Certificate2) if it's a confidential client app.
++ For web apps, and sometimes for public client apps (in particular when your app needs to use a broker),
+     you have to also set the redirectUri where the identity provider connects back to your application with the security tokens.
+
 
 
 
