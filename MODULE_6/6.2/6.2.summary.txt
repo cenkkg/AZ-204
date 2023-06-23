@@ -40,9 +40,27 @@ Security tokens can be acquired by multiple types of applications.
 + For web apps, and sometimes for public client apps (in particular when your app needs to use a broker),
      you have to also set the redirectUri where the identity provider connects back to your application with the security tokens.
 
+1- Instantiates a public client application:
+    IPublicClientApplication app = PublicClientApplicationBuilder.Create(clientId).Build();
+OR-----
+2- Instantiates a confidential application (a Web app located at https://myapp.azurewebsites.net)
+    string redirectUri = "https://myapp.azurewebsites.net";
+    IConfidentialClientApplication app = ConfidentialClientApplicationBuilder.Create(clientId)
+        .WithClientSecret(clientSecret)
+        .WithRedirectUri(redirectUri )
+        .Build();
 
+! You can use .With methods as modifiers: !
+.WithAuthority() and .WithRedirectUri() methods cen be used:
 
+var clientApp = PublicClientApplicationBuilder.Create(client_id)
+    .WithAuthority(AzureCloudInstance.AzurePublic, tenant_id)
+    .Build();
 
+var clientApp = PublicClientApplicationBuilder.Create(client_id)
+    .WithAuthority(AzureCloudInstance.AzurePublic, tenant_id)
+    .WithRedirectUri("http://localhost")
+    .Build();
 
 
 
