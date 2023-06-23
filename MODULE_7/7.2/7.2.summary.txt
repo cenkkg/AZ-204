@@ -128,3 +128,33 @@ Assign a user-assigned managed identity to an existing Azure virtual machine...
 """
 
 5/7/2 ---------------------------------------------------------------------------------------------------------------------
+Acquire an access token...
+
+A client application can request managed identities for Azure resources app-only access token for accessing a given resource.
+The token is based on the managed identities for Azure resources service principal.
+The recommended method is to use the DefaultAzureCredential.
+
+E.g.:
+* Authenticate with DefaultAzureCredential...
+This example demonstrates authenticating the SecretClient from the Azure.Security.KeyVault.Secrets client library using the DefaultAzureCredential.
+"""
+    // Create a secret client using the DefaultAzureCredential
+    var client = new SecretClient(new Uri("https://myvault.vault.azure.net/"), new DefaultAzureCredential());
+"""
+
+* Specify a user-assigned managed identity with DefaultAzureCredential...
+This example demonstrates configuring the DefaultAzureCredential to authenticate a user-assigned identity when deployed to an Azure host. 
+It then authenticates a BlobClient from the Azure.Storage.Blobs client library with credential.
+"""
+    // When deployed to an azure host, the default azure credential will authenticate the specified user assigned managed identity.
+    string userAssignedClientId = "<your managed identity client Id>";
+    var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = userAssignedClientId });
+    var blobClient = new BlobClient(new Uri("https://myaccount.blob.core.windows.net/mycontainer/myblob"), credential);
+"""
+
+6/7/2 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+7/7/2 ---------------------------------------------------------------------------------------------------------------------
+TEST
+
