@@ -1,0 +1,110 @@
+1/7/4 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+! Use the wealth of data in Microsoft Graph to build apps for organizations and consumers that interact with millions of users. !
+
+2/7/4 ---------------------------------------------------------------------------------------------------------------------
+Microsoft Graph is the gateway to data and intelligence in Microsoft 365.
+In the Microsoft 365 platform, three main components facilitate the access and flow of data:
+    - The Microsoft Graph API offers a single endpoint, https://graph.microsoft.com. You can use REST APIs or SDKs to access the endpoint.
+    - Microsoft Graph connectors work in the incoming direction, delivering data external to the Microsoft cloud into Microsoft Graph services and applications, to enhance Microsoft 365 experiences such as Microsoft Search. 
+    - Microsoft Graph Data Connect provides a set of tools to streamline secure and scalable delivery of Microsoft Graph data to popular Azure data stores.
+
+3/7/4 ---------------------------------------------------------------------------------------------------------------------
+Microsoft Graph is a RESTful web API that enables you to access Microsoft Cloud service resources.
+After you register your app and get authentication tokens for a user or service, you can make requests to the Microsoft Graph API.
+
+Call a REST API method...
+To read from or write to a resource such as a user or an email message, construct a request that looks like the following:
+    {HTTP method} https://graph.microsoft.com/{version}/{resource}?{query-parameters}
+
+
+4/7/4 ---------------------------------------------------------------------------------------------------------------------
+Query Microsoft Graph by using SDKs...
+The Microsoft Graph SDKs are designed to simplify building high-quality, efficient, and resilient applications that access Microsoft Graph.
+
+The SDKs include two components: a service library and a core library:
+    1- The service library contains models and request builders that are generated from 
+        Microsoft Graph metadata to provide a rich, strongly typed, and discoverable experience 
+        when working with the many datasets available in Microsoft Graph.
+    2- The core library provides a set of features that enhance working with all the Microsoft Graph services.
+
+Create a Microsoft Graph client...
+The Microsoft Graph client is designed to make it simple to make calls to Microsoft Graph.
+You can use a single client instance for the lifetime of the application.
+
+E.g.:
+"""
+    var scopes = new[] { "User.Read" };
+
+    // Multi-tenant apps can use "common",
+    // single-tenant apps must use the tenant ID from the Azure portal
+    var tenantId = "common";
+
+    // Value from app registration
+    var clientId = "YOUR_CLIENT_ID";
+
+    // using Azure.Identity;
+    var options = new TokenCredentialOptions
+    {
+        AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+    };
+
+    // Callback function that receives the user prompt
+    // Prompt contains the generated device code that you must
+    // enter during the auth process in the browser
+    Func<DeviceCodeInfo, CancellationToken, Task> callback = (code, cancellation) => {
+        Console.WriteLine(code.Message);
+        return Task.FromResult(0);
+    };
+
+    // https://learn.microsoft.com/dotnet/api/azure.identity.devicecodecredential
+    var deviceCodeCredential = new DeviceCodeCredential(
+        callback, tenantId, clientId, options);
+
+    var graphClient = new GraphServiceClient(deviceCodeCredential, scopes);
+"""
+
+Read information from Microsoft Graph...
+To read information from Microsoft Graph, you first need to create a request object and then run the GET method on the request.
+"""
+    // GET https://graph.microsoft.com/v1.0/me
+    var user = await graphClient.Me
+        .Request()
+        .GetAsync();
+"""
+
+Retrieve a list of entities...
+Retrieving a list of entities is similar to retrieving a single entity except there are other options for configuring the request. 
+"""
+    // GET https://graph.microsoft.com/v1.0/me/messages?$select=subject,sender&$filter=<some condition>&orderBy=receivedDateTime
+    var messages = await graphClient.Me.Messages
+        .Request()
+        .Select(m => new {
+            m.Subject,
+            m.Sender
+        })
+        .Filter("<filter condition>")
+        .OrderBy("receivedDateTime")
+        .GetAsync();
+"""
+
+Delete an entity...
+"""
+    // DELETE https://graph.microsoft.com/v1.0/me/messages/{message-id}
+    string messageId = "AQMkAGUy...";
+    var message = await graphClient.Me.Messages[messageId]
+        .Request()
+        .DeleteAsync();
+"""
+
+Create a new entity...
+"""
+    // POST https://graph.microsoft.com/v1.0/me/calendars
+    var calendar = new Calendar
+    {
+        Name = "Volunteer"
+    };
+    var newCalendar = await graphClient.Me.Calendars
+        .Request()
+        .AddAsync(calendar);
+"""
