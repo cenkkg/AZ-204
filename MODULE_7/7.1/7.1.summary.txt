@@ -1,8 +1,8 @@
-1/7/3 ---------------------------------------------------------------------------------------------------------------------
+1/7/1 ---------------------------------------------------------------------------------------------------------------------
 INTRODUCTION
 Azure Key Vault is a cloud service for securely storing and accessing secrets.
 
-2/7/3 ---------------------------------------------------------------------------------------------------------------------
+2/7/1 ---------------------------------------------------------------------------------------------------------------------
 Explore Azure Key Vault...
 
 The Azure Key Vault service supports two types of containers: 
@@ -20,7 +20,7 @@ Key benefits of using Azure Key Vault...
     3- Monitor access and use
     4- Simplified administration of application secrets
 
-3/7/3 ---------------------------------------------------------------------------------------------------------------------
+3/7/1 ---------------------------------------------------------------------------------------------------------------------
 ! Azure Key Vault is a tool for securely storing and accessing secrets. !
 
 Authentication...
@@ -42,7 +42,7 @@ Azure Key Vault best practices...
     + Backup: Create regular back ups of your vault on update/delete/create of objects within a Vault.
     + Logging: Be sure to turn on logging and alerts.
 
-4/7/3 ---------------------------------------------------------------------------------------------------------------------
+4/7/1 ---------------------------------------------------------------------------------------------------------------------
 Authenticate to Azure Key Vault...
 
 Authentication with Key Vault works with Azure Active Directory, 
@@ -65,7 +65,7 @@ PUT /keys/MYKEY?api-version=<api_version>  HTTP/1.1
 Authorization: Bearer <access_token>
 """
 
-5/7/3 ---------------------------------------------------------------------------------------------------------------------
+5/7/1 ---------------------------------------------------------------------------------------------------------------------
 EXERCISE
 
 Create a Key Vault...
