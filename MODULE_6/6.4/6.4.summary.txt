@@ -108,3 +108,18 @@ Create a new entity...
         .Request()
         .AddAsync(calendar);
 """
+
+5/7/4 ---------------------------------------------------------------------------------------------------------------------
+Apply best practices to Microsoft Graph...
+
+Authentication...
+To access the data in Microsoft Graph, your application needs to acquire an OAuth 2.0 access token, 
+    and present it to Microsoft Graph in either of the following methods:
+        - The HTTP Authorization request header, as a Bearer token
+        - The graph client constructor, when using a Microsoft Graph client library
+
+6/7/4 ---------------------------------------------------------------------------------------------------------------------
+TEST
+
+7/7/4 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
