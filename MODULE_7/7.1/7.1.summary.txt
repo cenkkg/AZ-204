@@ -1,0 +1,86 @@
+1/7/3 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+Azure Key Vault is a cloud service for securely storing and accessing secrets.
+
+2/7/3 ---------------------------------------------------------------------------------------------------------------------
+Explore Azure Key Vault...
+
+The Azure Key Vault service supports two types of containers: 
+    - Vaults 
+    - Managed hardware security module(HSM) pools. 
+    Vaults support storing software and HSM-backed keys, secrets, and certificates. 
+    Managed HSM pools only support HSM-backed keys.
+
+Azure Key Vault has two service tiers: Standard, which encrypts with a software key, 
+    and a Premium tier, which includes hardware security module(HSM)-protected keys.
+
+Key benefits of using Azure Key Vault...
+    1- Centralized application secrets
+    2- Securely store secrets and keys
+    3- Monitor access and use
+    4- Simplified administration of application secrets
+
+3/7/3 ---------------------------------------------------------------------------------------------------------------------
+! Azure Key Vault is a tool for securely storing and accessing secrets. !
+
+Authentication...
+To do any operations with Key Vault, you first need to authenticate to it. There are three ways to authenticate to Key Vault:
+    - Managed identities for Azure resources: When you deploy an app on a virtual machine in Azure, 
+        you can assign an identity to your virtual machine that has access to Key Vault.
+    - Service principal and certificate: You can use a service principal and an associated certificate that has access to Key Vault.
+    - Service principal and secret: Although you can use a service principal and a secret to authenticate to Key Vault, we don't recommend it.
+
+Encryption of data in transit...
+Azure Key Vault enforces Transport Layer Security (TLS) protocol to protect data when it’s traveling between Azure Key Vault and clients.
+Clients negotiate a TLS connection with Azure Key Vault.
+Perfect Forward Secrecy (PFS) protects connections between customers’ client systems and Microsoft cloud services by unique keys.
+
+Azure Key Vault best practices...
+    + Use separate key vaults: Recommended using a vault per application per environment (Development, Pre-Production and Production). 
+    + Control access to your vault: Key Vault data is sensitive and business critical, 
+        you need to secure access to your key vaults by allowing only authorized applications and users.
+    + Backup: Create regular back ups of your vault on update/delete/create of objects within a Vault.
+    + Logging: Be sure to turn on logging and alerts.
+
+4/7/3 ---------------------------------------------------------------------------------------------------------------------
+Authenticate to Azure Key Vault...
+
+Authentication with Key Vault works with Azure Active Directory, 
+    which is responsible for authenticating the identity of any given security principal.
+
+For applications, there are two ways to obtain a service principal:
+    - Enable a system-assigned managed identity for the application.
+    - If you can't use managed identity, you instead register the application with your Azure AD tenant.
+
+Authentication to Key Vault in application code...
+Key Vault SDK is using Azure Identity client library, which allows seamless authentication to Key Vault across environments with same code. 
+    + .NET 
+    + Python
+    + JavaScript
+
+Authentication to Key Vault with REST...
+!!! Access tokens must be sent to the service using the HTTP Authorization header: !!!
+"""
+PUT /keys/MYKEY?api-version=<api_version>  HTTP/1.1  
+Authorization: Bearer <access_token>
+"""
+
+5/7/3 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+Create a Key Vault...
+You can create key-vault by this command in Bash:
+"""
+    az keyvault create --name $myKeyVault --resource-group az204-vault-rg --location $myLocation
+"""
+
+Add and retrieve a secret...
+"""
+    az keyvault secret set --vault-name $myKeyVault --name "ExamplePassword" --value "hVFkk965BuUv"
+    az keyvault secret show --name "ExamplePassword" --vault-name $myKeyVault ---> (Returns) "value": "hVFkk965BuUv"
+    az group delete --name az204-vault-rg --no-wait ---> To delete resource
+"""
+
+
+
+
