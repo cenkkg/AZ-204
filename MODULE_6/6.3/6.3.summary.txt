@@ -1,0 +1,98 @@
+1/6/3 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+! A shared access signature (SAS) is a URI that grants restricted access rights to Azure Storage resources. !
+
+2/6/3 ---------------------------------------------------------------------------------------------------------------------
+A shared access signature (SAS) is a signed URI that points to one or more storage resources and includes a token
+     that contains a special set of query parameters.
+
+Types of shared access signatures:
+    - User delegation SAS: A user delegation SAS is secured with Azure Active Directory credentials and also by the permissions specified for the SAS.
+    - Service SAS: A service SAS is secured with the storage account key.
+    - Account SAS: An account SAS is secured with the storage account key. An account SAS delegates access to resources in one or more of the storage services.
+
+!!!
+When you use a SAS to access data stored in Azure Storage, you need two components. 
+    The first is a URI to the resource you want to access. 
+    The second part is a SAS token that you've created to authorize access to that resource.
+!!!
+
+E.g.:
+    Let's we have URI in such form:
+        https://medicalrecords.blob.core.windows.net/patient-images/patient-116139-nq8z7f.jpg?sp=r&st=2020-01-20T11:42:32Z&se=2020-01-20T19:42:32Z&spr=https&sv=2019-02-02&sr=b&sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D
+    - URI: https://medicalrecords.blob.core.windows.net/patient-images/patient-116139-nq8z7f.jpg?
+    - SAS Token: sp=r&st=2020-01-20T11:42:32Z&se=2020-01-20T19:42:32Z&spr=https&sv=2019-02-02&sr=b&sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D
+        -- sp=r: Controls the access rights. The values can be a for add, c for create, d for delete, l for list, r for read, or w for write.
+        -- st=2020-01-20T11:42:32Z:	The date and time when access starts.
+        -- se=2020-01-20T19:42:32Z:	The date and time when access ends. This example grants eight hours of access.
+        -- sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D: The cryptographic signature.
+
+To reduce the potential risks of using a SAS, Microsoft provides some guidance:
+    + To securely distribute a SAS and prevent man-in-the-middle attacks, always use HTTPS.
+    + The most secure SAS is a user delegation SAS.
+        Use it wherever possible because it removes the need to store your storage account key in code. 
+        You must use Azure Active Directory to manage credentials. 
+        This option might not be possible for your solution.
+
+
+3/6/3 ---------------------------------------------------------------------------------------------------------------------
+Choose when to use shared access signatures...
+
+!!! 
+Use a SAS when you want to provide secure access to resources in your storage account to any client 
+    who doesn't otherwise have permissions to those resources. 
+!!!
+
+A common scenario where a SAS is useful is a service where users read and write their own data to your storage account:
+    1- Clients upload and download data via a front-end proxy service, which performs authentication.
+    2- A lightweight service authenticates the client as needed and then generates a SAS.
+        Once the client application receives the SAS, 
+            they can access storage account resources directly with the permissions defined by the SAS and for the interval allowed by the SAS.
+        The SAS mitigates the need for routing all data through the front-end proxy service.
+
+4/6/3 ---------------------------------------------------------------------------------------------------------------------
+Explore stored access policies...
+
+A stored access policy provides an extra level of control over service-level shared access signatures (SAS) on the server side.
+!!!
+The access policy for a SAS consists of the start time, expiry time, and permissions for the signature. 
+You can specify all of these parameters on the signature URI and none within the stored access policy; 
+    all on the stored access policy and none on the URI; or some combination of the two. 
+However, you can't specify a given parameter on both the SAS token and the stored access policy.
+!!!
+
+Examples:
+"""
+    BlobSignedIdentifier identifier = new BlobSignedIdentifier
+    {
+        Id = "stored access policy identifier",
+        AccessPolicy = new BlobAccessPolicy
+        {
+            ExpiresOn = DateTimeOffset.UtcNow.AddHours(1),
+            Permissions = "rw"
+        }
+    };
+
+    blobContainer.SetAccessPolicy(permissions: new BlobSignedIdentifier[] { identifier });
+"""
+
+or we can use Azure CLI:
+"""
+    az storage container policy create \
+        --name <stored access policy identifier> \
+        --container-name <container name> \
+        --start <start time UTC datetime> \
+        --expiry <expiry time UTC datetime> \
+        --permissions <(a)dd, (c)reate, (d)elete, (l)ist, (r)ead, or (w)rite> \
+        --account-key <storage account key> \
+        --account-name <storage account name> \
+"""
+
+Modifying or revoking a stored access policy...
+To modify the parameters of the stored access policy you can call the access control list operation for the resource type to replace the existing policy.
+
+5/6/3 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+6/6/3 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
