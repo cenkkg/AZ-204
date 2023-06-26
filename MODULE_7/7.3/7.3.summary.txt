@@ -1,0 +1,176 @@
+1/7/3 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+
+2/7/3 ---------------------------------------------------------------------------------------------------------------------
+Explore the Azure App Configuration service...
+
+Spreading configuration settings across these components can lead to hard-to-troubleshoot errors during an application deployment. 
+Use App Configuration to store all the settings for your application and secure their accesses in one place.
+
+App Configuration offers the following benefits:
+    + A fully managed service that can be set up in minutes
+    + Flexible key representations and mappings
+    + Enhanced security through Azure-managed identities
+
+
+App Configuration complements Azure Key Vault, which is used to store application secrets. 
+    App Configuration makes it easier to implement the following scenarios:
+        + Centralize management and distribution of hierarchical configuration data 
+            for different environments and geographies
+        + Dynamically change application settings without the need to redeploy or restart an application
+        + Control feature availability in real-time
+
+3/7/3 ---------------------------------------------------------------------------------------------------------------------
+Create paired keys and values...
+
+!!! 
+    Azure App Configuration stores configuration data as key-value pairs.
+!!!
+
+Keys: 
+    Keys serve as the name for key-value pairs and are used to store and retrieve corresponding values.
+    Keys stored in App Configuration are case-sensitive, unicode-based strings. The keys app1 and App1 are distinct in an App Configuration store.
+
+Design key namespaces:
+    There are two general approaches to naming keys used for configuration data: flat or hierarchical. 
+    These methods are similar from an application usage standpoint, but hierarchical naming offers many advantages:
+        + Easier to read. Instead of one long sequence of characters, delimiters in a hierarchical key name function as spaces in a sentence.
+        + Easier to manage. A key name hierarchy represents logical groups of configuration data.
+        + Easier to use. It's simpler to write a query that pattern-matches keys in a hierarchical structure and retrieves only a portion of configuration data.
+
+E.g.:
+    - AppName:Service1:ApiEndpoint
+    - AppName:Service2:ApiEndpoint
+    - AppName:Region1:DbEndpoint
+    - AppName:Region2:DbEndpoint
+
+Label keys:
+    Key values in App Configuration can optionally have a label attribute.
+    Labels are used to differentiate key values with the same key. 
+    A key app1 with labels A and B forms two separate keys in an App Configuration store. 
+
+Version key values:
+    App Configuration doesn't version key values automatically as they're modified.
+
+Query key values:
+    Each key value is uniquely identified by its key plus a label that can be null.
+
+Values:
+    Values assigned to keys are also unicode strings.
+
+4/7/3 ---------------------------------------------------------------------------------------------------------------------
+Manage application features...
+
+Feature management is a modern software-development practice that decouples feature release 
+    from code deployment and enables quick changes to feature availability on demand.
+
+It uses a technique called feature flags (also known as feature toggles, feature switches, and so on) 
+    to dynamically administer a feature's lifecycle.
+
+Basic concepts...
+    Here are several new terms related to feature management:
+        + Feature flag: A feature flag is a variable with a binary state of on or off.
+            The feature flag also has an associated code block.
+        + Feature manager: A feature manager is an application package that handles the lifecycle of all the feature flags in an application.
+        + Filter: A filter is a rule for evaluating the state of a feature flag.
+
+An effective implementation of feature management consists of at least two components working in concert:
+    + An application that makes use of feature flags.
+    + A separate repository that stores the feature flags and their current states.
+
+Feature flag usage in code...
+    The basic pattern for implementing feature flags in an 
+    application is simple. You can think of a feature flag as a 
+    Boolean state variable used with an if conditional statement in 
+    your code:
+
+        """
+            if (featureFlag) {
+                // Run the following code
+            }
+        """
+        In this case, if featureFlag is set to True, the enclosed code block is executed; otherwise, it's skipped. 
+        """
+            bool featureFlag = true; // Statically give state to flag.
+            bool featureFlag = isBetaUser(); // Evaluate flag's state based on certain rules.
+        """
+
+Feature flag declaration...
+    Each feature flag has two parts:
+        +  a name 
+        + a list of one or more filters that are used to evaluate if a feature's state is on (that is, when its value is True).
+    A filter defines a use case for when a feature should be turned on.
+
+    When a feature flag has multiple filters, the filter list is traversed in order until one of the filters determines the feature should be enabled. 
+    At that point, the feature flag is on, and any remaining filter results are skipped. If no filter indicates the feature should be enabled, the feature flag is off.
+
+    The feature manager supports appsettings.json as a configuration source for feature flags. 
+    The following example shows how to set up feature flags in a JSON file:
+        """
+            "FeatureManagement": {
+            "FeatureA": true, // Feature flag set to on
+            "FeatureB": false, // Feature flag set to off
+            "FeatureC": {
+                    "EnabledFor": [
+                        {
+                            "Name": "Percentage",
+                            "Parameters": {
+                                "Value": 50
+                            }
+                        }
+                    ]
+                }
+            }
+        """
+
+Feature flag repository...
+    To use feature flags effectively, you need to externalize all the feature flags used in an application. 
+    Azure App Configuration is designed to be a centralized repository for feature flags.
+
+
+5/7/3 ---------------------------------------------------------------------------------------------------------------------
+Secure app configuration data...
+
+Encrypt configuration data by using customer-managed keys...
+    Azure App Configuration encrypts sensitive information at rest using a 256-bit AES encryption key provided by Microsoft.
+
+Enable customer-managed key capability...
+    The following components are required to successfully enable the customer-managed key capability for Azure App Configuration:
+        + Standard tier Azure App Configuration instance
+        + Azure Key Vault with soft-delete and purge-protection features enabled
+
+    Once these resources are configured, two steps remain to allow Azure App Configuration to use the Key Vault key:
+        + Assign a managed identity to the Azure App Configuration instance
+        + Grant the identity GET, WRAP, and UNWRAP permissions in the target Key Vault's access policy.
+
+Use private endpoints for Azure App Configuration...
+    You can use private endpoints for Azure App Configuration to allow clients on a virtual network (VNet) to securely access data over a private link.
+    !!!
+        Network traffic between the clients on the VNet and the App Configuration store traverses over the VNet using a private link on the Microsoft backbone network, eliminating exposure to the public internet.
+    !!!
+    Using private endpoints for your App Configuration store enables you to:
+        + Secure your application configuration details by configuring the firewall to block all connections to App Configuration on the public endpoint.
+        + Increase security for the virtual network (VNet) ensuring data doesn't escape from the VNet.
+        + Securely connect to the App Configuration store from on-premises networks that connect to the VNet using VPN or ExpressRoutes with private-peering.
+
+Managed identities...
+    A managed identity from Azure Active Directory (Azure AD) allows Azure App Configuration to easily access other AAD-protected resources, such as Azure Key Vault.
+    Your application can be granted two types of identities:
+        + A system-assigned identity is tied to your configuration store. It's deleted if your configuration store is deleted. A configuration store can only have one system-assigned identity.
+        + A user-assigned identity is a standalone Azure resource that can be assigned to your configuration store. A configuration store can have multiple user-assigned identities.
+
+1) Add a system-assigned identity...
+    """
+        az appconfig identity assign \ 
+        --name myTestAppConfigStore \ 
+        --resource-group myResourceGroup
+    """
+
+2) Add a user-assigned identity...
+    """
+        az identity create --resource-group myResourceGroup --name myUserAssignedIdentity
+
+        az appconfig identity assign --name myTestAppConfigStore \ 
+        --resource-group myResourceGroup \ 
+        --identities /subscriptions/[subscription id]/resourcegroups/myResourceGroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myUserAssignedIdentity
+    """
