@@ -146,4 +146,209 @@ The policy defined in following example demonstrates how to filter
 
 
 5/10/1 ---------------------------------------------------------------------------------------------------------------------
+Create advanced policies...
+
+This unit provides a reference for the following API Management policies:
+    + Control flow 
+    + Forward request
+    + Limit concurrency
+    + Log to Event Hub
+    + Mock response
+    + Retry
+
+    1- Control flow:
+        The choose policy applies enclosed policy statements based on the 
+            outcome of evaluation of boolean expressions, similar to an if-then-else or a switch construct in a programming language.
+        """
+            <choose>
+                <when condition="Boolean expression | Boolean constant">
+                    <!— one or more policy statements to be applied if the above condition is true  -->
+                </when>
+                <when condition="Boolean expression | Boolean constant">
+                    <!— one or more policy statements to be applied if the above condition is true  -->
+                </when>
+                <otherwise>
+                    <!— one or more policy statements to be applied if none of the above conditions are true  -->
+            </otherwise>
+            </choose>
+        """
+
+    2- Forward request:
+        """
+            <forward-request timeout="time in seconds" follow-redirects="true | false"/>
+        """
+    
+    3- Limit concurrency:
+            The limit-concurrency policy prevents enclosed policies from executing by more than the specified number of requests 
+                at any time. Upon exceeding that number, new requests will fail immediately with a 429 Too Many Requests status code.
+
+            """
+                <limit-concurrency key="expression" max-count="number">
+                    <!— nested policy statements -->
+                </limit-concurrency> 
+            """
+
+    4- Log to Event Hub:
+        The log-to-eventhub policy sends messages in the specified format to an Event Hub defined by a Logger entity
+        """
+            <log-to-eventhub logger-id="id of the logger entity" partition-id="index of the partition where messages are sent" partition-key="value used for partition assignment">
+                Expression returning a string to be logged
+            </log-to-eventhub>
+        """
+
+    5- Mock response:
+        The mock-response, as the name implies, is used to mock APIs and operations. It aborts normal pipeline execution and returns a mocked response to the caller.
+        """
+            <mock-response status-code="code" content-type="media type"/>
+        """
+
+    6- Retry:
+        The retry policy executes its child policies once and then retries their execution until the retry condition becomes false or retry count is exhausted.
+        """
+            <retry
+                condition="boolean expression or literal"
+                count="number of retry attempts"
+                interval="retry interval in seconds"
+                max-interval="maximum retry interval in seconds"
+                delta="retry interval delta in seconds"
+                first-fast-retry="boolean expression or literal">
+                    <!-- One or more child policies. No restrictions -->
+            </retry>
+        """
+
+    7- Return response:
+        The return-response policy aborts pipeline execution and returns either a default or custom response to the caller.
+        """
+            <return-response response-variable-name="existing context variable">
+                <set-header/>
+                <set-body/>
+                <set-status/>
+            </return-response>
+        """
+
+6/10/1 ---------------------------------------------------------------------------------------------------------------------
+Secure APIs by using subscriptions...
+
+!!!
+    When you publish APIs through API Management, it's easy and common to secure access to those APIs by using subscription keys. 
+    Developers who need to consume the published APIs must include a valid subscription key in HTTP requests when they make calls to those APIs. 
+    Otherwise, the calls are rejected immediately by the API Management gateway. They aren't forwarded to the back-end services.
+!!!
+
+!!!
+    To get a subscription key for accessing APIs, a subscription is required. A subscription is essentially a named container for a pair of subscription keys. 
+    Developers who need to consume the published APIs can get subscriptions. 
+    And they don't need approval from API publishers. API publishers can also create subscriptions directly for API consumers.
+!!!
+
+Subscriptions and Keys...
+    A subscription key is a unique auto-generated key that can be passed through in the headers of the client request or as a query string parameter.
+    The three main subscription scopes are:
+        + All APIs: Applies to every API accessible from the gateway
+        + Single API: This scope applies to a single imported API and all of its endpoints
+        + Product: A product is a collection of one or more APIs that you configure in API Management.
+            You can assign APIs to more than one product. Products can have different access rules, usage quotas, and terms of use.
+
+!!!
+    Applications that call a protected API must include the key in every request.
+!!!
+
+Every subscription has two keys, a primary and a secondary.
+Having two keys makes it easier when you do need to regenerate a key. 
+For example, if you want to change the primary key and avoid downtime, use the secondary key in your apps.
+
+For products where subscriptions are enabled, clients must supply a key when making calls to APIs in that product. 
+Developers can obtain a key by submitting a subscription request. If you approve the request, you must send them the subscription key securely, for example, in an encrypted message. 
+This step is a core part of the API Management workflow.
+
+Call an API with the subscription key...
+Applications must include a valid key in all HTTP requests when they make calls to API endpoints that are protected by a subscription.
+!!!
+    Keys can be passed in the request header, or as a query string in the URL.
+!!!
+!!!
+    The default header name is Ocp-Apim-Subscription-Key, and the default query string is subscription-key.
+!!!
+
+You can use tools to send request to APIs or you can use curl:
+    curl --header "Ocp-Apim-Subscription-Key: <key string>" https://<apim gateway>.azure-api.net/api/path
+        or as query string 
+    curl https://<apim gateway>.azure-api.net/api/path?subscription-key=<key string>
+
+
+7/10/1 ---------------------------------------------------------------------------------------------------------------------
+Secure APIs by using certificates...
+Certificates can be used to provide Transport Layer Security (TLS) mutual authentication between the client and the API gateway.
+
+Transport Layer Security client authentication...
+With TLS client authentication, the API Management gateway can inspect the certificate contained within the client request and check for properties like:
+    + Certificate Authority (CA)
+    + Thumbprint
+    + Subject
+    + Expiration Date
+
+Client certificates are signed to ensure that they are not tampered with. When a partner sends you a certificate, verify that it comes from them and not an imposter. There are two common ways to verify a certificate:
+    + Check who issued the certificate. 
+    + If the certificate is issued by the partner, verify that it came from them.
+
+Accepting client certificates in the Consumption tier...
+    The Consumption tier in API Management is designed to conform with serverless design principals.
+    If you build your APIs from serverless technologies, such as Azure Functions, this tier is a good fit.
+    In the Consumption tier, you must explicitly enable the use of client certificates, which you can do on the Custom domains page. 
+    ! This step is not necessary in other tiers. !
+
+Certificate Authorization Policies...
+    Create these policies in the inbound processing policy file within the API Management gateway:
+
+Check the thumbprint of a client certificate...
+    Every client certificate includes a thumbprint, which is a hash, calculated from other certificate properties.
+    The thumbprint ensures that the values in the certificate have not been altered since the certificate was issued by the certificate authority.
+    You can check the thumbprint in your policy.
+    E.g.:
+        """
+            <choose>
+                <when condition="@(context.Request.Certificate == null || context.Request.Certificate.Thumbprint != "desired-thumbprint")" >
+                    <return-response>
+                        <set-status code="403" reason="Invalid client certificate" />
+                    </return-response>
+                </when>
+            </choose>
+        """
+
+Check the thumbprint against certificates uploaded to API Management...
+    In the previous example, only one thumbprint would work so only one certificate would be validated. 
+    Usually, each customer or partner company would pass a different certificate with a different thumbprint.
+    To support this scenario, obtain the certificates from your partners and use the Client certificates page in the Azure portal to upload them to the API Management resource.
+    Then add this code to your policy:
+    """
+        <choose>
+            <when condition="@(context.Request.Certificate == null || !context.Request.Certificate.Verify()  || !context.Deployment.Certificates.Any(c => c.Value.Thumbprint == context.Request.Certificate.Thumbprint))" >
+                <return-response>
+                    <set-status code="403" reason="Invalid client certificate" />
+                </return-response>
+            </when>
+        </choose>
+    """
+
+Check the issuer and subject of a client certificate...
+    This example checks the issuer and subject of the certificate passed in the request:
+    """
+        <choose>
+            <when condition="@(context.Request.Certificate == null || context.Request.Certificate.Issuer != "trusted-issuer" || context.Request.Certificate.SubjectName.Name != "expected-subject-name")" >
+                <return-response>
+                    <set-status code="403" reason="Invalid client certificate" />
+                </return-response>
+            </when>
+        </choose>
+    """
+
+8/10/1 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+9/10/1 ---------------------------------------------------------------------------------------------------------------------
+TEST
+
+10/10/1 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
+
 
