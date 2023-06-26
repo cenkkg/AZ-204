@@ -174,3 +174,9 @@ Managed identities...
         --resource-group myResourceGroup \ 
         --identities /subscriptions/[subscription id]/resourcegroups/myResourceGroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myUserAssignedIdentity
     """
+
+6/7/3 ---------------------------------------------------------------------------------------------------------------------
+TEST
+
+7/7/3 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
