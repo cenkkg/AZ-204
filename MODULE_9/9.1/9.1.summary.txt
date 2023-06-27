@@ -1,0 +1,412 @@
+1/10/1 ---------------------------------------------------------------------------------------------------------------------
+INTRODUCTION
+Azure Event Grid is deeply integrated with Azure services and can be integrated with third-party services.
+It simplifies event consumption and lowers costs by eliminating the need for constant polling.
+Event Grid efficiently and reliably routes events from Azure and non-Azure resources, and distributes the events to registered subscriber endpoints.
+
+2/10/1 ---------------------------------------------------------------------------------------------------------------------
+EVENT GRID...
+Azure Event Grid is a serverless event broker that you can use to integrate applications using events.
+!!!
+    Publishers emit events, but have no expectation about how the events are handled. 
+    Subscribers decide on which events they want to handle.
+!!!
+
+!!!
+    You can use filters to route specific events to different endpoints, multicast to multiple endpoints, 
+        and make sure your events are reliably delivered.
+!!!
+
+Concepts in Azure Event Grid...
+    + Events - What happened.
+    + Event sources - Where the event took place.
+    + Topics - The endpoint where publishers send events.
+    + Event subscriptions - The endpoint or built-in mechanism to route events, sometimes to more than one handler. 
+        Subscriptions are also used by handlers to intelligently filter incoming events.
+    + Event handlers - The app or service reacting to the event.
+
+Events...
+    An event is the smallest amount of information that fully describes something that happened in the system. 
+    Every event has common information like: source of the event, time the event took place, and unique identifier.
+    An event of size up to 64 KB is covered by General Availability (GA) Service Level Agreement (SLA).
+    The support for an event of size up to 1 MB is currently in preview.
+    Events over 64 KB are charged in 64-KB increments.
+
+Event sources...
+    An event source is where the event happens. 
+    Each event source is related to one or more event types. 
+
+Topics...
+    The Event Grid topic provides an "endpoint" where the source sends events.
+    The publisher creates the Event Grid topic, and decides whether an event source needs one topic or more than one topic. 
+    A topic is used for a collection of related events.
+    To respond to certain types of events, subscribers decide which topics to subscribe to.
+        + System topics are built-in topics provided by Azure services.
+            You don't see system topics in your Azure subscription because the publisher owns the topics, but you can subscribe to them.
+            To subscribe, you provide information about the resource you want to receive events from.
+            As long as you have access to the resource, you can subscribe to its events.
+        + Custom topics are application and third-party topics. 
+            When you create or are assigned access to a custom topic, you see that custom topic in your subscription.
+
+Event subscriptions...
+    A subscription tells Event Grid which events on a topic you're interested in receiving.
+    When creating the subscription, you provide an endpoint for handling the event.
+    You can filter the events that are sent to the endpoint.
+    You can filter by event type, or subject pattern.
+
+Event handlers...
+    From an Event Grid perspective, an event handler is the place where the event is sent.
+    The handler takes some further action to process the event.
+    Event Grid supports several handler types.
+    You can use a supported Azure service or your own webhook as the handler.
+    Depending on the type of handler, Event Grid follows different mechanisms to guarantee the delivery of the event.
+
+3/10/1 ---------------------------------------------------------------------------------------------------------------------
+Discover event schemas...
+
+Azure Event Grid supports two types of event schemas:
+    + Event Grid event schema
+    + Cloud event schema
+
+!!!
+    Events consist of a set of four required string properties. 
+    The properties are common to all events from any publisher.
+!!!
+
+The data object has properties that are specific to each publisher.
+For system topics, these properties are specific to the resource provider, such as Azure Storage or Azure Event Hubs.
+
+!!!
+    Event sources send events to Azure Event Grid in an array, which can have several event objects.
+    When posting events to an Event Grid topic, the array can have a total size of up to 1 MB.
+!!!
+
+!!!
+    Event Grid sends the events to subscribers in an array that has a single event.
+!!!
+
+*** Event schema...
+    The following example shows the properties that are used by all event publishers:
+    """
+        [
+            {
+                "topic": string,
+                "subject": string,
+                "id": string,
+                "eventType": string,
+                "eventTime": string,
+                "data":{
+                object-unique-to-each-publisher
+                },
+                "dataVersion": string,
+                "metadataVersion": string
+            }
+        ]
+    """
+
+Event properties...
+    topic
+    subject
+    eventType
+    eventTime
+    id
+    datadataVersion
+    metadataVersion
+
+For custom topics, the event publisher determines the data object.
+When publishing events to custom topics, create subjects for your events that make 
+    it easy for subscribers to know whether they're interested in the event.
+Subscribers use the subject to filter and route events.
+
+*** Cloud events schema...
+In addition to its default event schema, Azure Event Grid natively supports 
+    events in the JSON implementation of CloudEvents v1.0 and HTTP protocol binding.
+CloudEvents is an open specification for describing event data.
+CloudEvents simplifies interoperability by providing a common event schema for publishing, and consuming cloud based events.
+E.g.:
+    """
+        {
+            "specversion": "1.0",
+            "type": "Microsoft.Storage.BlobCreated",  
+            "source": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}",
+            "id": "9aeb0fdf-c01e-0131-0922-9eb54906e209",
+            "time": "2019-11-18T15:13:39.4589254Z",
+            "subject": "blobServices/default/containers/{storage-container}/blobs/{new-file}",
+            "dataschema": "#",
+            "data": {
+                "api": "PutBlockList",
+                "clientRequestId": "4c5dd7fb-2c48-4a27-bb30-5361b5de920a",
+                "requestId": "9aeb0fdf-c01e-0131-0922-9eb549000000",
+                "eTag": "0x8D76C39E4407333",
+                "contentType": "image/png",
+                "contentLength": 30699,
+                "blobType": "BlockBlob",
+                "url": "https://gridtesting.blob.core.windows.net/testcontainer/{new-file}",
+                "sequencer": "000000000000000000000000000099240000000000c41c18",
+                "storageDiagnostics": {
+                    "batchId": "681fe319-3006-00a8-0022-9e7cde000000"
+                }
+            }
+        }
+    """
+!!!
+    You can use Event Grid for both input and output of events in CloudEvents schema.
+    You can use CloudEvents for system events, like Blob Storage events and IoT Hub events, and custom events.
+    It can also transform those events on the wire back and forth.
+!!!
+
+4/10/1 ---------------------------------------------------------------------------------------------------------------------
+Explore event delivery durability...
+    ! Event Grid provides durable delivery. !
+    ! It tries to deliver each event at least once for each matching subscription immediately. !
+    By default, Event Grid delivers one event at a time to the subscriber, and the payload is an array with a single event.
+    !!!
+        Event Grid doesn't guarantee order for event delivery, so subscribers may receive them out of order.
+    !!!
+
+Retry schedule...
+When Event Grid receives an error for an event delivery attempt, 
+    Event Grid decides whether it should retry the delivery, 
+    dead-letter the event, or drop the event based on the type of the error.
+If the error returned by the subscribed endpoint isn't among the above list, Event Grid waits 30 seconds for a response after delivering a message.
+After 30 seconds, if the endpoint hasn’t responded, the message is queued for retry. 
+Event Grid uses an exponential backoff retry policy for event delivery.
+
+If the endpoint responds within 3 minutes, Event Grid attempts to remove the event from the retry queue on a best effort basis but duplicates may still be received.
+
+Retry policy...
+    You can customize the retry policy when creating an event subscription by using the following two configurations. 
+    An event is dropped if either of the limits of the retry policy is reached.
+        + Maximum number of attempts - The value must be an integer between 1 and 30. The default value is 30.
+        + Event time-to-live (TTL) - The value must be an integer between 1 and 1440. The default value is 1440 minutes
+    The following example shows setting the maximum number of attempts to 18 by using the Azure CLI:
+        """
+            az eventgrid event-subscription create \
+                -g gridResourceGroup \
+                --topic-name <topic_name> \
+                --name <event_subscription_name> \
+                --endpoint <endpoint_URL> \
+                --max-delivery-attempts 18
+        """
+
+Output batching...
+    You can configure Event Grid to batch events for delivery for improved HTTP performance in high-throughput scenarios. 
+    Batched delivery has two settings:
+        + Max events per batch - Maximum number of events Event Grid delivers per batch.
+        + Preferred batch size in kilobytes - Target ceiling for batch size in kilobytes.
+
+Delayed delivery...
+    As an endpoint experiences delivery failures, Event Grid begins to delay the delivery and retry of events to that endpoint. 
+
+Dead-letter events...
+    When Event Grid can't deliver an event within a certain time period or after trying to deliver the event a number of times, 
+        it can send the undelivered event to a storage account.
+    This process is known as dead-lettering.
+    Event Grid dead-letters an event when one of the following conditions is met:
+        + Event isn't delivered within the time-to-live period.
+        + The number of tries to deliver the event exceeds the limit.
+
+If either of the conditions is met, the event is dropped or dead-lettered. 
+Event Grid doesn't turn on dead-lettering. 
+To enable it, you must specify a storage account to hold undelivered events when creating the event subscription.
+You pull events from this storage account to resolve deliveries.
+
+Custom delivery properties...
+Event subscriptions allow you to set up HTTP headers that are included in delivered events.
+This capability allows you to set custom headers that are required by a destination.
+You can set up to 10 headers when creating an event subscription. 
+
+5/10/1 ---------------------------------------------------------------------------------------------------------------------
+Control access to events...
+    Azure Event Grid allows you to control the level of access given to different users 
+        to do various management operations such as list event subscriptions, create new ones, and generate keys.
+    Event Grid uses Azure role-based access control (Azure RBAC).
+
+Built-in roles...
+    + Event Grid Subscription Reader: Lets you read Event Grid event subscriptions.
+    + Event Grid Subscription Contributor: Lets you manage Event Grid event subscription operations.
+    + Event Grid Contributor: Lets you create and manage Event Grid resources.
+    + Event Grid Data Sender: Lets you send events to Event Grid topics.
+
+!!!
+    The Event Grid Subscription Reader and Event Grid Subscription Contributor roles are for managing event subscriptions. 
+    They're important when implementing event domains because they give users the permissions they need to subscribe to topics in your event domain.
+    These roles are focused on event subscriptions and don't grant access for actions such as creating topics.
+!!!
+
+!!!
+   The Event Grid Contributor role allows you to create and manage Event Grid resources.
+!!!
+
+Permissions for event subscriptions...
+    If you're using an event handler that isn't a WebHook (such as an event hub or queue storage), you need write access to that resource.
+
+6/10/1 ---------------------------------------------------------------------------------------------------------------------
+Receive events by using webhooks...
+    Webhooks are one of the many ways to receive events from Azure Event Grid.
+    When a new event is ready, Event Grid service POSTs an HTTP request to the configured endpoint with the event in the request body.
+    Like many other services that support webhooks, 
+        Event Grid requires you to prove ownership of your Webhook endpoint before it starts delivering events to that endpoint.
+    This requirement prevents a malicious user from flooding your endpoint with events.
+
+When you use any of the following three Azure services, the Azure infrastructure automatically handles this validation:
+    + Azure Logic Apps with Event Grid Connector
+    + Azure Automation via webhook
+    + Azure Functions with Event Grid Trigger
+
+Endpoint validation with Event Grid events...
+    If you're using any other type of endpoint, such as an HTTP trigger based Azure function, 
+        your endpoint code needs to participate in a validation handshake with Event Grid.
+    Event Grid supports two ways of validating the subscription:
+        + Synchronous handshake: At the time of event subscription creation, Event Grid sends a subscription validation event to your endpoint.
+            The schema of this event is similar to any other Event Grid event.
+            The data portion of this event includes a validationCode property.
+            Your application verifies that the validation request is for an expected event subscription, and returns the validation code in the response synchronously.
+        + Asynchronous handshake: In certain cases, you can't return the ValidationCode in response synchronously.
+    
+7/10/1 ---------------------------------------------------------------------------------------------------------------------
+Filter events...
+    When creating an event subscription, you have three options for filtering:
+        + Event types
+        + Subject begins with or ends with
+        + Advanced fields and operators
+    
+    1-) Event type filtering:
+        By default, all event types for the event source are sent to the endpoint.
+        You can decide to send only certain event types to your endpoint.
+        For example, you can get notified of updates to your resources, but not notified for other operations like deletions.
+        The JSON syntax for filtering by event type is:
+            """
+                "filter": {
+                                "includedEventTypes": [
+                                    "Microsoft.Resources.ResourceWriteFailure",
+                                    "Microsoft.Resources.ResourceWriteSuccess"
+                                ]
+                            }
+            """
+
+    2-) Subject filtering:
+        For simple filtering by subject, specify a starting or ending value for the subject.
+             For example, you can specify the subject ends with .txt to only get events related to uploading a text file to storage account.
+             Or, you can filter the subject begins with /blobServices/default/containers/testcontainer to get all events for that container but not other containers in the storage account.
+        The JSON syntax for filtering by subject is:
+            """
+                "filter": {
+                    "subjectBeginsWith": "/blobServices/default/containers/mycontainer/log",
+                    "subjectEndsWith": ".jpg"
+                }
+            """
+    3-) Advanced filtering:
+        To filter by values in the data fields and specify the comparison operator, use the advanced filtering option.
+        The JSON syntax for using advanced filters is:
+            """
+                "filter": {
+                    "advancedFilters": [
+                        {
+                        "operatorType": "NumberGreaterThanOrEquals",
+                        "key": "Data.Key1",
+                        "value": 5
+                        },
+                        {
+                        "operatorType": "StringContains",
+                        "key": "Subject",
+                        "values": ["container1", "container2"]
+                        }
+                    ]
+                }
+            """
+
+8/10/1 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+Route custom events to web endpoint by using Azure CLI...
+    Firstly please create resource group, you can use below command in CLI:
+        """
+            az group create --name az204-evgrid-rg --location $myLocation
+        """
+
+Enable an Event Grid resource provider...
+    ! This step is only needed on subscriptions that haven't previously used Event Grid. !
+    az provider register --namespace Microsoft.EventGrid
+
+    You can check the state with below command:
+        az provider show --namespace Microsoft.EventGrid --query "registrationState"
+
+Create a custom topic...
+    Create a custom topic by using the az eventgrid topic create command.
+    The name must be unique because it's part of the DNS entry.
+        """
+            az eventgrid topic create --name $myTopicName \
+            --location $myLocation \
+            --resource-group az204-evgrid-rg
+        """
+
+Create a message endpoint...
+    Before subscribing to the custom topic, we need to create the endpoint for the event message.
+    Typically, the endpoint takes actions based on the event data.
+    The following script uses a prebuilt web app that displays the event messages.
+        """
+            az deployment group create \
+                --resource-group az204-evgrid-rg \
+                --template-uri "https://raw.githubusercontent.com/Azure-Samples/azure-event-grid-viewer/main/azuredeploy.json" \
+                --parameters siteName=$mySiteName hostingPlanName=viewerhost
+
+            echo "Your web app URL: ${mySiteURL}"
+        """
+
+Subscribe to a custom topic...
+    You subscribe to an Event Grid topic to tell Event Grid which events you want to track and where to send those events.
+        """
+        endpoint="${mySiteURL}/api/updates"
+        subId=$(az account show --subscription "" | jq -r '.id')
+
+        az eventgrid event-subscription create \
+            --source-resource-id "/subscriptions/$subId/resourceGroups/az204-evgrid-rg/providers/Microsoft.EventGrid/topics/$myTopicName" \
+            --name az204ViewerSub \
+            --endpoint $endpoint
+        """
+    
+    View your web app again, and notice that a subscription validation event has been sent to it.
+    Select the eye icon to expand the event data.
+    Event Grid sends the validation event so the endpoint can verify that it wants to receive event data.
+    !!! The web app includes code to validate the subscription. !!!
+
+Send an event to your custom topic...
+    Firstly, you can get topicEndpoint and key with below scripts:
+        """
+            topicEndpoint=$(az eventgrid topic show --name $myTopicName -g az204-evgrid-rg --query "endpoint" --output tsv)
+            key=$(az eventgrid topic key list --name $myTopicName -g az204-evgrid-rg --query "key1" --output tsv)
+        """
+
+    Example of event data:
+        """
+            event='[ {"id": "'"$RANDOM"'", "eventType": "recordInserted", "subject": "myapp/vehicles/motorcycles", "eventTime": "'`date +%Y-%m-%dT%H:%M:%S%z`'", "data":{ "make": "Contoso", "model": "Monster"},"dataVersion": "1.0"} ]'
+        """
+
+    Below curl is sending event to topic:
+        """
+            curl -X POST -H "aeg-sas-key: $key" -d "$event" $topicEndpoint
+        """
+    
+    View your web app to see the event you just sent. Select the eye icon to expand the event data:
+        """
+            {
+                "id": "29078",
+                "eventType": "recordInserted",
+                "subject": "myapp/vehicles/motorcycles",
+                "eventTime": "2019-12-02T22:23:03+00:00",
+                "data": {
+                    "make": "Contoso",
+                    "model": "Northwind"
+                },
+                "dataVersion": "1.0",
+                "metadataVersion": "1",
+                "topic": "/subscriptions/{subscription-id}/resourceGroups/az204-evgrid-rg/providers/Microsoft.EventGrid/topics/az204-egtopic-589377852"
+            }
+        """
+
+9/10/1 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+10/10/1 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
