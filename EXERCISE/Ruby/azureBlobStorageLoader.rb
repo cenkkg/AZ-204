@@ -5,8 +5,11 @@ def getInputFromUser(message)
   gets.chomp
 end
 
+def printAllBlobsInContainer(blob_client)
+  blob_client.list_containers().each do |container|
+    puts container.name
+end
 
-# Replace with your Azure storage account name and access key
 account_name = ENV['ACCOUNT_NAME']
 access_key = ENV['ACCOUNT_KEY']
 container_name = get("Enter your container name: ")
