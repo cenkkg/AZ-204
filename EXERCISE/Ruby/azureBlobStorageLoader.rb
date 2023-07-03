@@ -8,6 +8,8 @@ end
 def printAllBlobsInContainer(blob_client)
   blob_client.list_containers().each do |container|
     puts container.name
+    blob_client.list_blobs(container.name).each do |blob|
+      puts "-> #{blob.name}"
   end
 end
 
