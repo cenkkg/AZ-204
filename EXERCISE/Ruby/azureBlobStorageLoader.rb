@@ -12,7 +12,12 @@ def printAllBlobsInContainer(blob_client)
 end
 
 def createContainerInAzureBlobStorage(blob_client, blob_container_name)
-  
+  blob_client.create_container(blob_container_name)
+end
+
+def uploadFileToAzureBlob(blob_client, file_path, container_name)
+  blob_name = File.basename(file_path)
+  blob_client.create_block_blob(container_name, blob_name, File.open(file_path, 'rb'))
 end
 
 account_name = ENV['ACCOUNT_NAME']
@@ -26,7 +31,6 @@ blob_client = Azure::Storage::Blob::BlobService.create(
   storage_access_key: access_key
 )
 
-blob_name = File.basename(file_path)
-blob_client.create_block_blob(container_name, blob_name, File.open(file_path, 'rb'))
+createContainerInAzureBlobStorage(blob_client, container_name)
 
 
