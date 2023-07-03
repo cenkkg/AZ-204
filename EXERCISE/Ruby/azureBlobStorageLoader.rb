@@ -8,6 +8,11 @@ end
 def printAllBlobsInContainer(blob_client)
   blob_client.list_containers().each do |container|
     puts container.name
+  end
+end
+
+def createContainerInAzureBlobStorage(blob_client, blob_container_name)
+  
 end
 
 account_name = ENV['ACCOUNT_NAME']
