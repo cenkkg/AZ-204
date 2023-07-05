@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/cenkgurbet/Desktop/is/AZ-204/EXERCISE/NET/12.1/Rediscache/Rediscache.csproj": {}
+  },
+  "projects": {
+    "/Users/cenkgurbet/Desktop/is/AZ-204/EXERCISE/NET/12.1/Rediscache/Rediscache.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/cenkgurbet/Desktop/is/AZ-204/EXERCISE/NET/12.1/Rediscache/Rediscache.csproj",
+        "projectName": "Rediscache",
+        "projectPath": "/Users/cenkgurbet/Desktop/is/AZ-204/EXERCISE/NET/12.1/Rediscache/Rediscache.csproj",
+        "packagesPath": "/Users/cenkgurbet/.nuget/packages/",
+        "outputPath": "/Users/cenkgurbet/Desktop/is/AZ-204/EXERCISE/NET/12.1/Rediscache/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/cenkgurbet/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[2.6.116, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/x64/sdk/7.0.302/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

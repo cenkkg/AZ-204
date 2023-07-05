@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "Z77081STWjTeF9bJKOIZNFrq/UUSZQ34I6rBDCdqPl6pOpqzzSCHWmT48W17G4znzNjO1XWgJvtQFg3+Y/hphg==",
+  "success": true,
+  "projectFilePath": "/Users/cenkgurbet/Desktop/is/AZ-204/EXERCISE/NET/12.1/Rediscache/Rediscache.csproj",
+  "expectedPackageFiles": [
+    "/Users/cenkgurbet/.nuget/packages/pipelines.sockets.unofficial/2.2.8/pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "/Users/cenkgurbet/.nuget/packages/stackexchange.redis/2.6.116/stackexchange.redis.2.6.116.nupkg.sha512",
+    "/Users/cenkgurbet/.nuget/packages/system.io.pipelines/5.0.1/system.io.pipelines.5.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}
