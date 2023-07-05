@@ -1,0 +1,182 @@
+1/7/1 ---------------------------------------------------------------------------------------------------------------------
+    !!! Caching is a common technique that aims to improve the performance and scalability of a system. !!!
+
+2/7/1 ---------------------------------------------------------------------------------------------------------------------
+Explore Azure Cache for Redis...
+    Azure Cache for Redis provides an in-memory data store based on the Redis software.
+    Redis improves the performance and scalability of an application that uses backend data stores heavily.
+    Redis brings a critical low-latency and high-throughput data storage solution to modern applications.
+
+3/7/1 ---------------------------------------------------------------------------------------------------------------------
+Configure Azure Cache for Redis...
+    You can create a Redis cache using the Azure portal, the Azure CLI, or Azure PowerShell.
+
+Create and configure an Azure Cache for Redis instance...
+    There are several parameters you need to decide in order to configure the cache properly for your purposes.
+        + Name: The Redis cache needs a globally unique name.
+            The name has to be unique within Azure because it's used to generate a 
+                public-facing URL to connect and communicate with the service.
+        
+        + Location: ! You should always place your cache instance and your application in the same region. !
+            Connecting to a cache in a different region can significantly increase latency and reduce reliability.
+            If you're connecting to the cache outside of Azure, then select a location close to where the application consuming the data is running.
+
+        + Cache type: The tier determines the size, performance, and features that are available for the cache.
+        
+        + Clustering support: ! With the Premium, Enterprise, and Enterprise Flash tiers you can implement clustering to automatically split your dataset among multiple nodes. !
+
+Accessing the Redis instance...
+    Redis has a command-line tool for interacting with an Azure Cache for Redis as a client.
+        + ping
+        + set "key" "value"
+        + exists "key"
+
+Adding an expiration time to values...
+    Caching is important because it allows us to store commonly used values in memory.
+    However, we also need a way to expire values when they're stale.
+    In Redis this is done by applying a time to live (TTL) to a key.
+        + Expirations can be set using seconds or milliseconds precision.
+        + The expire time resolution is always 1 millisecond.
+        + Information about expires are replicated and persisted on disk, the time virtually passes when your Redis server remains stopped (this means that Redis saves the date when a key expires).
+            """
+                set counter 100
+                expire counter 5
+                get counter ---> 100
+                WAIT...
+                get counter ---> nil
+            """
+
+Accessing a Redis cache from a client...
+    To connect to an Azure Cache for Redis instance, you need several pieces of information. 
+    Clients need the:   
+        + Hostname:Tthe public Internet address of your cache (e.g. "sportsresults.redis.cache.windows.net")
+        + port
+        + an access key for the cache: The access key acts as a password for your cache.
+
+
+4/7/1 ---------------------------------------------------------------------------------------------------------------------
+Interact with Azure Cache for Redis by using .NET...
+    ! Typically, a client application uses a client library to form requests and execute commands on a Redis cache. !
+    You can get a list of client libraries directly from the Redis clients page.
+
+Executing commands on the Redis cache... 
+    A popular high-performance Redis client for the .NET language is StackExchange.Redis.
+
+    1- Connecting to your Redis cache with StackExchange.Redis:
+        Recall that we use the host address, port number, and an access key to connect to a Redis server.
+        But, you can also use connection string. Its form like:
+            "[cache-name].redis.cache.windows.net:6380,password=[password-here],ssl=True,abortConnect=False"
+
+    2- Creating a connection:
+        The main connection object in StackExchange.Redis is the StackExchange.Redis.ConnectionMultiplexer class.
+        This object abstracts the process of connecting to a Redis server (or group of servers).
+            """
+                using StackExchange.Redis;
+                ...
+                var connectionString = "[cache-name].redis.cache.windows.net:6380,password=[password-here],ssl=True,abortConnect=False";
+                var redisConnection = ConnectionMultiplexer.Connect(connectionString);
+            """
+        Once you have a ConnectionMultiplexer, there are three primary things you might want to do:
+            + Access a Redis Database. This is what we will focus on here.
+            + Make use of the publisher/subscriber features of Redis. This is outside the scope of this module.
+            + Access an individual server for maintenance or monitoring purposes.
+    
+    3- Accessing a Redis database:
+        The Redis database is represented by the IDatabase type.
+        You can retrieve one using the GetDatabase() method:
+            """
+                IDatabase db = redisConnection.GetDatabase();
+            """
+        
+        Once you have a IDatabase object, you can execute methods to interact with the cache.
+        !!!
+            All methods have synchronous and asynchronous versions that return 
+                Task objects to make them compatible with the async and await keywords.
+        !!!
+
+        * Following is an example of storing a key/value in the cache:
+            """
+                bool wasSet = db.StringSet("favorite:flavor", "i-love-rocky-road");
+            """
+        * The StringSet method returns a bool indicating whether the value was set (true) or not (false). 
+            """
+                string value = db.StringGet("favorite:flavor");
+                Console.WriteLine(value); // displays: ""i-love-rocky-road""
+            """
+        
+    4- Getting and Setting binary values:
+        Recall that Redis keys and values are binary safe.
+        These same methods can be used to store binary data.
+            """
+                byte[] key = ...;
+                byte[] value = ...;
+                db.StringSet(key, value);
+                ...
+                byte[] key = ...;
+                byte[] value = db.StringGet(key);
+            """
+
+        !!! StackExchange.Redis represents keys using the RedisKey type. !!!
+            This class has implicit conversions to and from both string and byte[], 
+                allowing both text and binary keys to be used without any complication.
+            Values are represented by the RedisValue type.
+            As with RedisKey, there are implicit conversions in place to allow you to pass string or byte[].
+
+    5- Other common operations:
+        The IDatabase interface includes several other methods to work with the Redis cache.
+            + CreateBatch
+            + CreateTransaction
+            + KeyDelete
+            + KeyExists
+
+    6- Executing other commands:
+        The IDatabase object has an Execute and ExecuteAsync method that can be used to pass textual commands to the Redis server.
+            """
+                var result = db.Execute("ping");
+                Console.WriteLine(result.ToString()); // displays: "PONG"
+            """
+        The Execute and ExecuteAsync methods return a RedisResult object that is a data holder that includes two properties:
+            + Type that returns a string indicating the type of the result - "STRING", "INTEGER", etc.
+            + IsNull a true/false value to detect when the result is null.
+            You can then use ToString() on the RedisResult to get the actual return value.
+
+            You can use Execute to perform any supported commands - for example, we can get all the clients connected to the cache ("CLIENT LIST"):
+                """
+                    var result = await db.ExecuteAsync("client", "list");
+                    Console.WriteLine($"Type = {result.Type}\r\nResult = {result}");
+                """
+
+    7- Storing more complex values:
+        Redis is oriented around binary safe strings, but you can cache off object graphs by serializing them to a textual format - typically XML or JSON.
+        We could use the Newtonsoft.Json library to turn an instance of this object into a string:
+            """
+                var stat = new GameStat("Soccer", new DateTime(2019, 7, 16), "Local Game", 
+                    new[] { "Team 1", "Team 2" },
+                    new[] { ("Team 1", 2), ("Team 2", 1) });
+
+                string serializedValue = Newtonsoft.Json.JsonConvert.SerializeObject(stat);
+                bool added = db.StringSet("event:1950-world-cup", serializedValue);
+            """
+        We could retrieve it and turn it back into an object using the reverse process:
+            """
+                var result = db.StringGet("event:2019-local-game");
+                var stat = Newtonsoft.Json.JsonConvert.DeserializeObject<GameStat>(result.ToString());
+                Console.WriteLine(stat.Sport); // displays "Soccer"
+            """
+
+    8- Cleaning up the connection:
+        Once you're done with the Redis connection, you can Dispose the ConnectionMultiplexer.
+        This closes all connections and shutdown the communication to the server.
+            """
+                redisConnection.Dispose();
+                redisConnection = null;
+            """
+
+5/7/1 ---------------------------------------------------------------------------------------------------------------------
+EXERCISE
+
+6/7/1 ---------------------------------------------------------------------------------------------------------------------
+TEST
+
+7/7/1 ---------------------------------------------------------------------------------------------------------------------
+SUMMARY
