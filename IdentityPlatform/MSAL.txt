@@ -1,0 +1,40 @@
+!!!
+    The Microsoft Authentication Library (MSAL) enables developers to acquire tokens from the Microsoft identity platform in order to authenticate users and access secured web APIs.
+!!!
+
+Explore the Microsoft Authentication Library...
+    The Microsoft Authentication Library (MSAL) can be used to provide secure access to:
+        + Microsoft Graph
+        + other Microsoft APIs
+        + third-party web APIs
+        + or your own web API
+    MSAL supports many different application architectures and platforms including .NET, JavaScript, Java, Python, Android, and iOS.
+    MSAL gives you many ways to get tokens, with a consistent API for many platforms.
+    Using MSAL provides the following benefits:
+        + No need to directly use the OAuth libraries or code against the protocol in your application.
+        + Acquires tokens on behalf of a user or on behalf of an application (when applicable to the platform).
+        + Maintains a token cache and refreshes tokens for you when they're close to expire. 
+            You don't need to handle token expiration on your own.
+    Public client, and confidential client applications:
+        Security tokens can be acquired by multiple types of applications.
+        These applications tend to be separated into the following two categories.
+        Each is used with different libraries and objects.
+            + Public client applications:
+                Are apps that run on devices or desktop computers or in a web browser.
+                They're not trusted to safely keep application secrets, so they only access web APIs on behalf of the user.
+            + Confidential client applications:
+                Are apps that run on servers (web apps, web API apps, or even service/daemon apps).
+                They're considered difficult to access, and for that reason capable of keeping an application secret.
+
+Initialize client applications...
+    With MSAL.NET 3.x, the recommended way to instantiate an application is by using the application builders:
+        + PublicClientApplicationBuilder
+        + ConfidentialClientApplicationBuilder
+    !!! Before initializing an application, you first need to register it so that your app can be integrated with the Microsoft identity platform. !!!
+    After registration, you may need the following information (which can be found in the Azure portal):
+        + The client ID (a string representing a GUID)
+        + The identity provider URL (named the instance) and the sign-in audience for your application.
+        + The tenant ID if you're writing a line of business application solely for your organization (also named single-tenant application).
+        + The application secret (client secret string) or certificate (of type X509Certificate2) if it's a confidential client app.
+    Initializing public and confidential client applications from code...
+        --- IN SCRIPT --- 
