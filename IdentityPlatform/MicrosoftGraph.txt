@@ -1,0 +1,9 @@
+Use the wealth of data in Microsoft Graph to build apps for organizations and consumers that interact with millions of users.
+The Microsoft Graph API offers a single endpoint, https://graph.microsoft.com.
+
+Query Microsoft Graph by using REST...
+Microsoft Graph is a RESTful web API that enables you to access Microsoft Cloud service resources.
+!!!
+    After you register your app and get authentication tokens for a user or service,
+    you can make requests to the Microsoft Graph API.
+!!!
