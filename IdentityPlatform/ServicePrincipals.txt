@@ -1,0 +1,111 @@
+Explore service principals...
+    !!! 
+        To delegate Identity and Access Management functions to Azure Active Directory, 
+            an application must be registered with an Azure Active Directory tenant.
+    !!!
+    When you register your application with Azure Active Directory, 
+        you're creating an identity configuration for your application 
+        that allows it to integrate with Azure Active Directory. 
+
+    When you register an app in the Azure portal, you choose whether it is:
+        + Single tenant: only accessible in your tenant
+        + Multi-tenant: accessible in other tenants
+
+    If you register an application in the portal, an application object (the globally unique instance of the app) 
+        and a service principal object are automatically created in your home tenant.
+    You also have a globally unique ID for your app (the app or client ID).
+
+    ! Application object:
+        An Azure Active Directory application is defined by its one and only application object.
+        The application object resides in the Azure Active Directory tenant where the application was registered (known as the application's "home" tenant).
+        An application object is used as a template or blueprint to create one or more service principal objects.
+        !!! A service principal is created in every tenant where the application is used. !!!
+        !!!
+            The application object describes three aspects of an application:
+                + how the service can issue tokens in order to access the application
+                + resources that the application might need to access
+                + and the actions that the application can take
+        !!!
+
+    ! Service principal object:
+        To access resources secured by an Azure Active Directory tenant, the entity that requires access must be represented by a security principal.
+        This is true for both users (user principal) and applications (service principal).
+        The security principal defines the access policy and permissions for the user/application in the Azure Active Directory tenant.
+        This enables core features such as authentication of the user/application during sign-in, and authorization during resource access.
+        There are 3 types of Service Principals:
+            + Application:
+                This type of service principal is the local representation, or application instance, of a global application object in a single tenant or directory.
+                The service principal object defines what the app can actually do in the specific tenant, who can access the app, and what resources the app can access.
+            +! Managed identity:
+                This type of service principal is used to represent a managed identity.
+                !!! Managed identities provide an identity for applications to use when connecting to resources that support Azure Active Directory authentication. !!!
+                When a managed identity is enabled, a service principal representing that managed identity is created in your tenant.
+                Service principals representing managed identities can be granted access and permissions, but can't be updated or modified directly.
+            + Legacy:
+                This type of service principal represents a legacy app, which is an app created before app registrations were introduced or an app created through legacy experiences.
+
+    !!!
+        Relationship between application objects and service principals...
+            The application object is the global representation of your application for use across all tenants, and the service principal is the local representation for use in a specific tenant.
+            The application object serves as the template from which common and default properties are derived for use in creating corresponding service principal objects.
+            An application object has:
+                ++ A one to one relationship with the software application, and
+                +++ A one to many relationship with its corresponding service principal object(s).
+                A service principal must be created in each tenant where the application is used to enable it to establish an identity for sign-in and/or access to resources being secured by the tenant.
+                    A single-tenant application has only one service principal (in its home tenant), created and consented for use during application registration.
+                    A multi-tenant application also has a service principal created in each tenant where a user from that tenant has consented to its use.
+    !!!
+
+    Discover permissions and consent...
+        Applications that integrate with the Microsoft identity platform follow an authorization model 
+            that gives users and administrators control over how data can be accessed.
+        The Microsoft identity platform implements the OAuth 2.0 authorization protocol.
+        OAuth 2.0 is a method through which a third-party app can access web-hosted resources on behalf of a user.
+        Any web-hosted resource that integrates with the Microsoft identity platform has a resource identifier, or application ID URI.
+        Here are some examples of Microsoft web-hosted resources:
+            ++ Microsoft Graph: https://graph.microsoft.com
+            ++ Microsoft 365 Mail API: https://outlook.office.com
+            ++ Azure Key Vault: https://vault.azure.net
+        The same is true for any third-party resources that have integrated with the Microsoft identity platform.
+
+        !!! In OAuth 2.0, these types of permission sets are called scopes. !!!
+            They're also often referred to as permissions.
+            In the Microsoft identity platform, a permission is represented as a string value.
+            An app requests the permissions it needs by specifying the permission in the scope query parameter.
+            !!! An app most commonly requests these permissions by specifying the scopes in requests to the Microsoft identity platform authorize endpoint. !!!
+        Permission types:
+            ++ Delegated permissions are used by apps that have a signed-in user present.
+                For these apps, either the user or an administrator consents to the permissions that the app requests.
+                The app is delegated with the permission to act as a signed-in user when it makes calls to the target resource.
+            ++ App-only access permissions are used by apps that run without a signed-in user present, for example, apps that run as background services or daemons.
+                Only an administrator can consent to app-only access permissions.
+
+        Consent types:
+            ! Applications in Microsoft identity platform rely on consent in order to gain access to necessary resources or APIs.  !
+            There are three consent types: static user consent, incremental and dynamic user consent, and admin consent:
+                + Static user consent:
+                    In the static user consent scenario, you must specify all the permissions it needs in the app's configuration in the Azure portal.
+                    If the user (or administrator, as appropriate) hasn't granted consent for this app, then Microsoft identity platform prompts the user to provide consent at this time.
+                    !! Static permissions also enable administrators to consent on behalf of all users in the organization. !!
+                + Incremental and dynamic user consent:
+                    ! With the Microsoft identity platform endpoint, you can ignore the static permissions defined in the app registration information in the Azure portal and request permissions incrementally instead. !
+                    You can ask for a minimum set of permissions upfront and request more over time as the customer uses more app features.
+                    !!!
+                        To do so, you can specify the scopes your app needs at any time by including the new scopes in the scope parameter when requesting an access token - without the need to predefine them in the application registration information.
+                    !!!
+                + Admin consent:
+                    Admin consent is required when your app needs access to certain high-privilege permissions.
+                    Admin consent ensures that administrators have some other controls before authorizing apps or users to access highly privileged data from the organization.
+
+    Discover conditional access...
+        + Multifactor authentication
+        + Allowing only Intune enrolled devices to access specific services
+        + Restricting user locations and IP ranges
+        How does Conditional Access impact an app?
+            In most common cases, Conditional Access doesn't change an app's behavior or require any changes from the developer.
+            
+
+
+    
+
+            

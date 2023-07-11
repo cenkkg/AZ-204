@@ -1,0 +1,47 @@
+A shared access signature (SAS) is a URI that grants restricted access rights to Azure Storage resources.
+!!!
+    You can provide a shared access signature to clients that you want to grant delegate access to 
+        certain storage account resources.
+!!!
+
+A shared access signature (SAS) is a signed URI that points to one or more storage resources 
+    and includes a token that contains a special set of query parameters.
+The token indicates how the resources may be accessed by the client.
+One of the query parameters, the signature,
+    is constructed from the SAS parameters and signed with the key that was used to create the SAS.
+This signature is used by Azure Storage to authorize access to the storage resource.
+
+Types of shared access signatures:
+    + User delegation SAS:
+        A user delegation SAS is secured with Azure Active Directory credentials and also by the permissions specified for the SAS.
+        A user delegation SAS applies to Blob storage only.
+    + Service SAS: 
+        A service SAS is secured with the storage account key.
+    + Account SAS:
+        An account SAS is secured with the storage account key.
+    
+!!! How shared access signatures work !!!
+    When you use a SAS to access data stored in Azure Storage, you need two components.
+        + The first is a URI to the resource you want to access.
+        +  The second part is a SAS token that you've created to authorize access to that resource.
+    
+!!! Choose when to use shared access signatures !!!
+    Use a SAS when you want to provide secure access to resources in your storage account to any client who doesn't otherwise have permissions to those resources.
+    A common scenario where a SAS is useful is a service where users read and write their own data to your storage account.
+    There 2 common scenarios:
+        + Frontend Proxy which is doing authentication
+        + Frontend Proxy which is creating SAS and send user for using to connect actual service
+    ! 
+        Many real-world services may use a hybrid of these two approaches. 
+        For example, some data might be processed and validated via the front-end proxy, while other data is saved and/or read directly using SAS.
+    !
+
+Explore stored access policies...
+    A stored access policy provides an extra level of control over service-level shared access signatures (SAS) on the server side.
+    Establishing a stored access policy groups SAS and provides more restrictions for signatures that are bound by the policy.
+    The following storage resources support stored access policies:
+        + Blob containers
+        + File shares
+        + Queues
+        + Tables
+    

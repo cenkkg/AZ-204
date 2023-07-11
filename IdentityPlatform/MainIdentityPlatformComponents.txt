@@ -1,0 +1,70 @@
+Explore the Microsoft identity platform:
+    The Microsoft identity platform helps you 
+        + Build applications your users and customers can sign in to, using their Microsoft identities or social accounts;
+        + And provide authorized access to your own APIs or Microsoft APIs like Microsoft Graph.
+
+    Main Components:
+        1 OAuth 2.0 and OpenID Connect standard-compliant authentication service
+            enabling developers to authenticate several identity types, including:
+                ++ Work or school accounts, provisioned through Azure Active Directory
+                ++ Personal Microsoft account, like Skype, Xbox, and Outlook.com
+                ++ Social or local accounts, by using Azure Active Directory B2C
+
+            There are 4 main components:
+                ++ The Microsoft identity platform is the authorization server.
+                    Also called an identity provider or IdP, it securely handles the end-user's information, 
+                        their access, and the trust relationships between the parties in the auth flow.
+                ++ Client: The client in an OAuth exchange is the application requesting access to a protected resource.
+                    The client could be a web app running on a server, a single-page web app running in a user's web browser, or a web API that calls another web API.
+                    You'll often see the client referred to as client application, application, or app.
+                ++ Resource owner: The resource owner in an auth flow is usually the application user, or end-user in OAuth terminology.
+                    The resource owner can grant or deny your app (the client) access to the resources they own.
+                ++ Resource server: The resource server hosts or provides access to a resource owner's data.    
+                    Most often, the resource server is a web API fronting a data store.
+                    The resource server relies on the authorization server to perform authentication and uses information 
+                        in bearer tokens issued by the authorization server to grant or deny access to resources.
+                
+            ! Tokens: 
+                The parties in an authentication flow use bearer tokens to assure, verify, and authenticate a principal (user, host, or service) 
+                    and to grant or deny access to protected resources (authorization).
+                Bearer tokens in the Microsoft identity platform are formatted as JSON Web Tokens (JWT).
+                There 3 types of bearer tokes: 
+                    ++ Access tokens - Access tokens are issued by the authorization server to the client application. 
+                        The client passes access tokens to the resource server.
+                        !!! Access tokens contain the permissions the client has been granted by the authorization server. !!!
+                    ++ ID tokens - ID tokens are issued by the authorization server to the client application.
+                        Clients use ID tokens when signing in users and to get basic information about them.
+                    ++ Refresh tokens: The client uses a refresh token, or RT, to request new access and ID tokens from the authorization server.
+                        Your code should treat refresh tokens and their string content as sensitive data because they're intended for use only by authorization server.
+
+            App registration:
+                Your client app needs a way to trust the security tokens issued to it by the Microsoft identity platform.
+                The first step in establishing trust is by registering your app.
+                When you register your app, the identity platform automatically assigns it some values, while others you configure based on the application's type.
+                Two of the most commonly referenced app registration settings are:
+                    ++ Application (client) ID: Also called application ID and client ID, this value is assigned to your app by the identity platform.
+                        The client ID uniquely identifies your app in the identity platform and is included in the security tokens the platform issues.
+                    ++ Redirect URI: The authorization server uses a redirect URI to direct the resource owner's user-agent (web browser, mobile app) to another destination after completing their interaction.
+                        For example, after the end-user authenticates with the authorization server. Not all client types use redirect URIs.
+
+            Endpoints:
+                Two commonly used endpoints are the 'authorization' endpoint and 'token' endpoint.
+                    """
+                        # Authorization endpoint - used by client to obtain authorization from the resource owner.
+                        https://login.microsoftonline.com/<issuer>/oauth2/v2.0/authorize
+                    """
+                    """
+                        # Token endpoint - used by client to exchange an authorization grant or refresh token for an access token.
+                        https://login.microsoftonline.com/<issuer>/oauth2/v2.0/token
+                    """
+
+        2 Open-source libraries: Microsoft Authentication Libraries (MSAL) and support for other standards-compliant libraries
+        3 Application management portal: A registration and configuration experience in the Azure portal, along with the other Azure management capabilities.
+        4 Application configuration API and PowerShell: Programmatic configuration of your applications through the Microsoft Graph API and PowerShell so you can automate your DevOps tasks.
+
+        !!! 
+            For developers, the Microsoft identity platform offers integration of modern innovations in the identity and security space like:
+                + passwordless authentication, 
+                + step-up authentication, 
+                + and Conditional Access. 
+        !!!
